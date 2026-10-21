@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>🐸 Frog Squad — လျှာနဲ့မျို၊ မှုတ်ထုတ်ကယ်တင်!</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:#2b2118;font-family:'Segoe UI',system-ui,sans-serif;color:#fff;display:flex;flex-direction:column;align-items:center;min-height:100vh;overflow-x:hidden}
+  header{padding:10px 14px 4px;text-align:center}
+  header h1{font-size:22px;color:#ffe9a8}
+  header p{font-size:13px;color:#ffd9ec;margin-top:2px}
+  #wrap{position:relative;width:min(96vw,960px)}
+  canvas{width:100%;height:auto;display:block;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5);background:#f7e8b8;touch-action:none}
+  #hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 4px;font-size:14px}
+  .pill{background:#453322;border:1px solid #6b5236;border-radius:999px;padding:5px 12px}
+  .pill b{color:#ffe9a8}
+  #hint{width:min(96vw,960px);background:#3d2d1c;border:1px solid #6b5236;border-radius:12px;padding:9px 14px;font-size:14px;line-height:1.55;color:#ffeecf;text-align:center}
+  #touch{display:none;width:min(96vw,960px);justify-content:space-between;padding:10px 2px 18px;user-select:none}
+  .tgrp{display:flex;gap:10px}
+  .tbtn{width:62px;height:62px;border-radius:50%;border:2px solid #8a6a44;background:rgba(69,51,34,.9);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;touch-action:none}
+  .tbtn:active{background:#a3743a}
+  .tbtn.big{width:72px;height:72px;font-size:13px;font-weight:700;background:rgba(214,84,132,.9);border-color:#f7a8d8}
+  @media (pointer:coarse){#touch{display:flex}}
+  #overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(43,25,10,.55);border-radius:14px;text-align:center;padding:20px}
+  #overlay .card{background:#fff7e0;color:#4a2f14;border-radius:16px;padding:22px 26px;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+  #overlay h2{font-size:24px;margin-bottom:8px}
+  #overlay p{font-size:15px;line-height:1.6}
+  #overlay button{margin-top:14px;background:#e8598a;color:#fff;border:0;border-radius:999px;padding:11px 26px;font-size:16px;font-weight:700;cursor:pointer}
+  footer{font-size:12px;color:#a68d68;padding:4px 10px 16px;text-align:center;line-height:1.6}
+  kbd{background:#5a4230;border-radius:5px;padding:1px 7px;font-family:inherit;color:#ffe9a8}
+</style>
+</head>
+<body>
+<header>
+  <h1>🐸 Frog Squad</h1>
+  <p>ဗီဒီယိုထဲက Croak Squad လို — လျှာနဲ့ သူငယ်ချင်းကို မျိုပြီး မှုတ်ထုတ်၊ အမြင့်ကို ဆွဲတက်၊ အဖွဲ့လိုက် ပန်းတိုင်ရောက်အောင်သွား!</p>
+</header>
+
+<div id="wrap">
+  <canvas id="game" width="960" height="540"></canvas>
+  <div id="overlay"><div class="card">
+    <h2 id="ovTitle">🎉 အောင်ပြီ!</h2>
+    <p id="ovText"></p>
+    <button id="ovBtn">နောက်တစ်ဆင့် ➜</button>
+  </div></div>
+</div>
+
+<div id="hud">
+  <span class="pill">အဆင့် <b id="hLevel">1/3</b></span>
+  <span class="pill">🪰 ပိုးကောင် <b id="hFlies">0/0</b></span>
+  <span class="pill">ဗိုက်ထဲမှာ <b id="hBelly">ဘာမှမရှိ</b></span>
+  <span class="pill">🏁 ပန်းတိုင်မှာ <b id="hGoal">0/4</b></span>
+  <span class="pill">⏱ <b id="hTime">0:00</b></span>
+</div>
+
+<div id="hint"></div>
+
+<div id="touch">
+  <div class="tgrp">
+    <div class="tbtn" id="tLeft">◀</div>
+    <div class="tbtn" id="tRight">▶</div>
+  </div>
+  <div class="tgrp">
+    <div class="tbtn big" id="tTongue">👅 လျှာ</div>
+    <div class="tbtn" id="tJump">⬆</div>
+  </div>
+</div>
+
+<footer>
+  ⌨️ PC: <kbd>◀ ▶</kbd> / <kbd>A D</kbd> လမ်း &nbsp; <kbd>Space</kbd> ခုန် &nbsp; <kbd>J</kbd> / <kbd>👅</kbd> လျှာ (မျို / မှုတ် / ဆွဲတက်) &nbsp; <kbd>↑</kbd> ဖိထား + လျှာ = အပေါ်ကို မှုတ်/ဆွဲ<br>
+  📱 ဖုန်း: မျက်နှာပြင်ပေါ်က ခလုတ်တွေနဲ့ ဆော့ပါ။ &nbsp; R = အဆင့်ပြန်စ
+</footer>
+
+<script>
+'use strict';
+const cv=document.getElementById('game'),ctx=cv.getContext('2d');
+const W=960,H=540;
+const GRAV=1900, MOVE=265, JUMP=760;
+
+// ---------- audio (synth, no files) ----------
+let AC=null;
+function audio(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } if(AC&&AC.state==='suspended')AC.resume(); }
+function beep(f,d,type,g,slide){ if(!AC)return; const o=AC.createOscillator(),v=AC.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f,AC.currentTime); if(slide)o.frequency.exponentialRampToValueAtTime(slide,AC.currentTime+d); v.gain.setValueAtTime(g||0.12,AC.currentTime); v.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d); o.connect(v); v.connect(AC.destination); o.start(); o.stop(AC.currentTime+d); }
+const sJump=()=>beep(340,0.14,'square',0.06,620);
+const sGulp=()=>beep(500,0.16,'sine',0.16,140);
+const sSpit=()=>beep(220,0.2,'sawtooth',0.08,760);
+const sGrab=()=>beep(180,0.22,'sine',0.14,520);
+const sFly =()=>beep(880,0.12,'triangle',0.1,1320);
+const sWin =()=>{ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.22,'triangle',0.12),i*110)); };
+
+// ---------- levels ----------
+// type: ground=orange block, wood=floating wood, pink=pink block. anchors: leaf grapple points.
+const LEVELS=[
+{ name:'အဆင့် ၁ — သင်ခန်းစာ မြက်ခင်း',
+  hint:'👅 <b>လျှာ</b> ခလုတ်ကို နှိပ်ရင် အနီးက သူငယ်ချင်းကို <b>မျို</b>မယ်။ နောက်တစ်ခါ နှိပ်ရင် <b>မှုတ်ထုတ်</b>မယ်။ မြောင်းကြီးကို သူငယ်ချင်းတွေ ကိုယ်တိုင် မခုန်နိုင်ဘူး — မျိုပြီး ဟိုဘက်ကို မှုတ်ပေးပါ။ အမြင့်တံတိုင်းမှာ <b>↑ ဖိထား + လျှာ</b> နဲ့ 🍃 အရွက်ကို ဆွဲတက်ပါ။',
+  spawn:{x:60,y:380},
+  platforms:[
+    {x:0,y:440,w:360,h:100,t:'ground'},
+    {x:540,y:440,w:420,h:100,t:'ground'},
+    {x:800,y:300,w:160,h:140,t:'ground'},
+    {x:640,y:368,w:96,h:18,t:'wood'},
+  ],
+  anchors:[{x:850,y:225}],
+  flies:[{x:450,y:360},{x:690,y:320},{x:875,y:255}],
+  goal:{x:822,y:232,w:118,h:68},
+},
+{ name:'အဆင့် ၂ — သစ်သားလှေကား',
+  hint:'သစ်သားပြားတွေပေါ် အရင် ခုန်တက်၊ သူငယ်ချင်းတွေကို တစ်ယောက်ချင်း မှုတ်တင်ပေးပါ။ 🍃 အရွက် ၂ ခုက လျှာဆွဲတက်ဖို့။ ပန်းတိုင်က ညာဘက် အမြင့်ဆုံးမှာ!',
+  spawn:{x:50,y:380},
+  platforms:[
+    {x:0,y:440,w:250,h:100,t:'ground'},
+    {x:330,y:440,w:180,h:100,t:'ground'},
+    {x:590,y:440,w:120,h:100,t:'ground'},
+    {x:250,y:352,w:92,h:18,t:'wood'},
+    {x:430,y:288,w:92,h:18,t:'wood'},
+    {x:600,y:230,w:92,h:18,t:'wood'},
+    {x:770,y:180,w:190,h:360,t:'ground'},
+  ],
+  anchors:[{x:645,y:170},{x:830,y:110}],
+  flies:[{x:290,y:305},{x:470,y:240},{x:640,y:182},{x:860,y:130}],
+  goal:{x:795,y:112,w:140,h:68},
+},
+{ name:'အဆင့် ၃ — ပန်းရောင် တွင်းဝ',
+  hint:'ပန်းရောင် နံရံကို တစ်ခုချင်း တက်ရမယ့် အဆင့်! သူငယ်ချင်းတွေကို အထစ်တွေပေါ် မှုတ်တင်၊ ကိုယ်တိုင်က 🍃/အထစ်တွေနဲ့ ဆွဲတက်။ အဖွဲ့ ၄ ကောင်လုံး ပန်းတိုင်ထဲ ရောက်မှ အောင်မယ်။',
+  spawn:{x:60,y:450},
+  platforms:[
+    {x:0,y:490,w:960,h:50,t:'ground'},
+    {x:380,y:430,w:130,h:18,t:'pink'},
+    {x:560,y:362,w:130,h:18,t:'pink'},
+    {x:380,y:294,w:130,h:18,t:'pink'},
+    {x:560,y:226,w:130,h:18,t:'pink'},
+    {x:380,y:158,w:130,h:18,t:'pink'},
+    {x:600,y:96,w:360,h:444,t:'ground'},
+  ],
+  anchors:[{x:445,y:368},{x:625,y:164},{x:700,y:46}],
+  flies:[{x:440,y:388},{x:620,y:320},{x:440,y:252},{x:620,y:184}],
+  goal:{x:760,y:28,w:150,h:68},
+}];
+
+// ---------- state ----------
+let levelIdx=0, platforms=[], anchors=[], flies=[], goal=null, particles=[];
+let player, buddies=[], startTime=0, elapsed=0, won=false, winTimer=0, goalTimer=0;
+const BUDDY_DEFS=[
+  {color:'#f6a8d7',name:'ပန်းရောင်'},
+  {color:'#f9d976',name:'အဝါ'},
+  {color:'#f2f2f2',name:'အဖြူ'},
+];
+const keys={left:false,right:false,up:false};
+
+function makeFrog(x,y,color,isPlayer){
+  return {x,y,w:38,h:32,vx:0,vy:0,face:1,onGround:false,color,isPlayer:!!isPlayer,
+    belly:null, swallowed:false, flying:false, tongue:null, squash:0, safeX:x, safeY:y,
+    hopT:Math.random()*2, blink:Math.random()*3};
+}
+function loadLevel(i){
+  levelIdx=i; const L=LEVELS[i];
+  platforms=L.platforms; anchors=L.anchors; goal=L.goal;
+  flies=L.flies.map(f=>({x:f.x,y:f.y,taken:false,bob:Math.random()*6}));
+  player=makeFrog(L.spawn.x,L.spawn.y,'#7ecbf2',true);
+  buddies=BUDDY_DEFS.map((d,j)=>{ const b=makeFrog(L.spawn.x-46*(j+1)+90, L.spawn.y, d.color,false); b.name=d.name; return b; });
+  // spread buddies behind spawn safely on same ground
+  buddies.forEach((b,j)=>{ b.x=Math.max(8,L.spawn.x+52*(j+1)); b.y=L.spawn.y; b.safeX=b.x; b.safeY=b.y; });
+  particles=[]; won=false; winTimer=0; goalTimer=0; startTime=performance.now(); elapsed=0;
+  document.getElementById('hLevel').textContent=(i+1)+'/'+LEVELS.length;
+  document.getElementById('hint').innerHTML='💡 '+L.hint;
+  updateHUD();
+}
+function updateHUD(){
+  const got=flies.filter(f=>f.taken).length;
+  document.getElementById('hFlies').textContent=got+'/'+flies.length;
+  document.getElementById('hBelly').textContent=player&&player.belly?player.belly.name+' ဖား':'ဘာမှမရှိ';
+  const inGoal=countInGoal();
+  document.getElementById('hGoal').textContent=inGoal+'/4';
+}
+function countInGoal(){
+  if(!goal) return 0;
+  let n=0; const inside=f=>!f.swallowed && f.x+f.w>goal.x && f.x<goal.x+goal.w && f.y+f.h>goal.y && f.y<goal.y+goal.h;
+  if(player&&inside(player))n++; buddies.forEach(b=>{ if(inside(b))n++; }); return n;
+}
+
+// ---------- physics ----------
+function collide(f,dt){
+  f.x+=f.vx*dt; f.y+=f.vy*dt;
+  f.onGround=false;
+  for(const p of platforms){
+    if(f.x+f.w>p.x && f.x<p.x+p.w && f.y+f.h>p.y && f.y<p.y+p.h){
+      const prevBottom=f.y+f.h-f.vy*dt, prevTop=f.y-f.vy*dt, prevRight=f.x+f.w-f.vx*dt, prevLeft=f.x-f.vx*dt;
+      if(f.vy>=0 && prevBottom<=p.y+1){ f.y=p.y-f.h; f.vy=0; f.onGround=true; }
+      else if(f.vy<0 && prevTop>=p.y+p.h-1){ f.y=p.y+p.h; f.vy=0; }
+      else if(f.vx>0 && prevRight<=p.x+1){ f.x=p.x-f.w; f.vx=0; }
+      else if(f.vx<0 && prevLeft>=p.x+p.w-1){ f.x=p.x+p.w; f.vx=0; }
+    }
+  }
+  if(f.x<0)f.x=0; if(f.x>W-f.w)f.x=W-f.w;
+  if(f.onGround && Math.abs(f.vy)<1){ f.safeX=f.x; f.safeY=f.y; }
+  if(f.y>H+60){ f.x=f.safeX; f.y=f.safeY-10; f.vx=0; f.vy=0; f.flying=false; splash(f,'💦'); }
+}
+function splash(f,emo){ for(let i=0;i<8;i++) particles.push({x:f.x+f.w/2,y:f.y+f.h/2,vx:(Math.random()-0.5)*160,vy:-Math.random()*160-40,t:0.6,emo:emo||'✨'}); }
+
+// ---------- tongue ----------
+function mouth(f){ return {x:f.x+f.w/2+f.face*16, y:f.y+14}; }
+function fireTongue(){
+  audio();
+  if(player.belly){ // spit!
+    const b=player.belly; player.belly=null;
+    const up=keys.up;
+    b.swallowed=false; b.flying=true;
+    b.x=player.x+player.w/2-b.w/2; b.y=player.y-6;
+    b.vx=player.face*(up?200:330); b.vy=up?-770:-540;
+    b.face=player.face; sSpit(); splash(b,'💨'); updateHUD(); return;
+  }
+  if(player.tongue) return;
+  const dirX=player.face, dirY=keys.up?-0.85:0;
+  const len=Math.hypot(dirX,dirY); const dx=dirX/len, dy=dirY/len;
+  player.tongue={dx,dy,dist:0,max:250,phase:'out',hit:null};
+  // aim assist: snap to a leaf anchor roughly in the aim direction
+  const m0=mouth(player);
+  for(const a of anchors){
+    const ax=a.x-m0.x, ay=a.y-m0.y, ad=Math.hypot(ax,ay);
+    if(ad<285 && ad>10 && (ax*dx+ay*dy)/ad>0.72){ player.tongue.phase='pull'; player.tongue.ax=a.x; player.tongue.ay=a.y; player.tongue.dist=ad; sGrab(); break; }
+  }
+}
+function stepTongue(dt){
+  const t=player.tongue; if(!t)return;
+  const m=mouth(player);
+  if(t.phase==='out'){
+    t.dist+=620*dt;
+    const tipX=m.x+t.dx*t.dist, tipY=m.y+t.dy*t.dist;
+    // buddy hit?
+    for(const b of buddies){
+      if(!b.swallowed && Math.abs(tipX-(b.x+b.w/2))<26 && Math.abs(tipY-(b.y+b.h/2))<26){
+        player.belly=b; b.swallowed=true; b.flying=false; b.vx=b.vy=0;
+        player.tongue=null; sGulp(); splash(player,'😋'); updateHUD(); return;
+      }
+    }
+    // anchor hit?
+    for(const a of anchors){
+      if(Math.abs(tipX-a.x)<20 && Math.abs(tipY-a.y)<20){ t.phase='pull'; t.ax=a.x; t.ay=a.y; sGrab(); return; }
+    }
+    // solid hit -> grapple point
+    for(const p of platforms){
+      if(tipX>p.x&&tipX<p.x+p.w&&tipY>p.y&&tipY<p.y+p.h){ t.phase='pull'; t.ax=tipX; t.ay=tipY; sGrab(); return; }
+    }
+    if(t.dist>=t.max) t.phase='back';
+  } else if(t.phase==='pull'){
+    const cx=player.x+player.w/2, cy=player.y+player.h/2;
+    const ddx=t.ax-cx, ddy=t.ay-cy, d=Math.hypot(ddx,ddy);
+    if(d<30){ player.tongue=null; player.vy=-260; }
+    else { player.vx=ddx/d*430; player.vy=ddy/d*430; }
+  } else if(t.phase==='back'){
+    t.dist-=900*dt; if(t.dist<=0) player.tongue=null;
+  }
+}
+
+// ---------- buddy AI ----------
+function stepBuddy(b,dt){
+  if(b.swallowed) return;
+  if(b.flying){ b.vy+=GRAV*dt; collide(b,dt); if(b.onGround)b.flying=false; return; }
+  // follow the player, keep some spacing
+  const idx=buddies.indexOf(b);
+  const tx=player.x - player.face*(54*(idx+1)) ;
+  const dx=tx-b.x, dy=player.y-b.y;
+  const distP=Math.hypot(player.x-b.x, player.y-b.y);
+  let move=0;
+  if(Math.abs(dx)>16) move=Math.sign(dx);
+  // don't walk off an edge toward a far-below player: probe ground ahead
+  if(move!==0 && b.onGround){
+    const px=b.x+b.w/2+move*30, py=b.y+b.h+14;
+    let groundAhead=false;
+    for(const p of platforms){ if(px>p.x&&px<p.x+p.w&&py>p.y-6&&py<p.y+p.h+26) groundAhead=true; }
+    if(!groundAhead && distP>120){ move=0; /* wait at edge — needs to be spat across */ }
+  }
+  b.vx=move*168;
+  if(move!==0)b.face=move;
+  if(b.onGround && (dy<-34 || (move!==0 && Math.abs(b.vx)>0 && blocked(b,move)))) { b.vy=-JUMP*0.92; sJumpQuiet(b); }
+  b.vy+=GRAV*dt; if(b.vy>950)b.vy=950;
+  collide(b,dt);
+}
+function blocked(b,move){
+  const px=move>0? b.x+b.w+3 : b.x-3;
+  for(const p of platforms){ if(px>p.x&&px<p.x+p.w && b.y+b.h-6>p.y && b.y+4<p.y+p.h) return true; }
+  return false;
+}
+let lastQuiet=0; function sJumpQuiet(){ const n=performance.now(); if(n-lastQuiet>250){lastQuiet=n;} }
+
+// ---------- player ----------
+function stepPlayer(dt){
+  let move=0;
+  if(keys.left)move-=1; if(keys.right)move+=1;
+  if(move!==0)player.face=move;
+  const target=move*MOVE;
+  player.vx += (target-player.vx)*Math.min(1,dt*14);
+  if(Math.abs(player.vx)<2&&move===0)player.vx=0;
+  player.vy+=GRAV*dt; if(player.vy>980)player.vy=980;
+  stepTongue(dt);
+  collide(player,dt);
+  player.squash=player.onGround? Math.max(0,player.squash-dt*6) : 0;
+}
+function jump(){ audio(); if(player.onGround && !won){ player.vy=-JUMP; player.onGround=false; player.squash=0.35; sJump(); } }
+
+// ---------- flies ----------
+function stepFlies(){
+  for(const f of flies){
+    if(f.taken)continue;
+    const cx=f.x, cy=f.y+Math.sin(performance.now()/300+f.bob)*4;
+    const all=[player,...buddies];
+    for(const fr of all){ if(!fr.swallowed && Math.abs(cx-(fr.x+fr.w/2))<26 && Math.abs(cy-(fr.y+fr.h/2))<26){ f.taken=true; sFly(); splash(fr,'🪰'); updateHUD(); } }
+  }
+}
+
+// ---------- draw ----------
+function drawFrog(f){
+  if(f.swallowed)return;
+  const cx=f.x+f.w/2, cy=f.y+f.h/2;
+  const sq=f.onGround? 1+Math.sin(performance.now()/180+f.hopT)*0.02 : 1;
+  const bellyBulge=(f.isPlayer&&f.belly)?1.22:1;
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(f.face*bellyBulge*sq, (1/Math.max(0.9,sq))*bellyBulge);
+  // body
+  ctx.fillStyle=f.color; ctx.strokeStyle='#3a2c18'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.ellipse(0,2,19,15,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  // belly
+  ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.beginPath(); ctx.ellipse(2,7,11,8,0,0,Math.PI*2); ctx.fill();
+  // eyes
+  const look=f.face*2, blink=(Math.sin(performance.now()/900+f.blink*7)>0.97)?0.15:1;
+  for(const s of [-1,1]){
+    ctx.fillStyle=f.color; ctx.beginPath(); ctx.arc(s*9,-11,6,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s*9,-11,4.4,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#222'; ctx.beginPath(); ctx.ellipse(s*9+look,-11,2.1,2.1*blink,0,0,Math.PI*2); ctx.fill();
+  }
+  // mouth + blush
+  ctx.strokeStyle='#3a2c18'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(3,1,5,0.15*Math.PI,0.85*Math.PI); ctx.stroke();
+  ctx.fillStyle='rgba(255,120,160,0.5)'; ctx.beginPath(); ctx.arc(-11,3,3.4,0,Math.PI*2); ctx.arc(15,3,3,0,Math.PI*2); ctx.fill();
+  // arm
+  ctx.strokeStyle='#3a2c18'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(12,8); ctx.quadraticCurveTo(18,10,16,4); ctx.stroke();
+  ctx.restore();
+  // tongue
+  if(f.tongue){
+    const m=mouth(f); const t=f.tongue;
+    const tipX=m.x+t.dx*t.dist, tipY=m.y+t.dy*t.dist;
+    ctx.strokeStyle='#ef5d8f'; ctx.lineWidth=6; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(t.phase==='pull'?t.ax:tipX, t.phase==='pull'?t.ay:tipY); ctx.stroke();
+    ctx.fillStyle='#ef5d8f'; ctx.beginPath(); ctx.arc(t.phase==='pull'?t.ax:tipX, t.phase==='pull'?t.ay:tipY,7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#c2185b'; ctx.beginPath(); ctx.arc(m.x,m.y,6,0,Math.PI*2); ctx.fill();
+  }
+}
+function draw(){
+  // bg gradient like the video (warm cream)
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#fbeec2'); g.addColorStop(1,'#f3d98b');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  // platforms
+  for(const p of platforms){
+    if(p.t==='wood'){ ctx.fillStyle='#c89b62'; roundRect(p.x,p.y,p.w,p.h,5); ctx.fill(); ctx.strokeStyle='#8a6a3c'; ctx.lineWidth=2; ctx.stroke();
+      ctx.strokeStyle='rgba(138,106,60,0.6)'; ctx.beginPath(); ctx.moveTo(p.x+8,p.y+p.h/2); ctx.lineTo(p.x+p.w-8,p.y+p.h/2); ctx.stroke(); }
+    else if(p.t==='pink'){ ctx.fillStyle='#f6c6d8'; ctx.fillRect(p.x,p.y,p.w,p.h); ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.fillRect(p.x,p.y,p.w,5); }
+    else { ctx.fillStyle='#e2a83d'; ctx.fillRect(p.x,p.y,p.w,p.h); ctx.fillStyle='#f0bc55'; ctx.fillRect(p.x,p.y,p.w,7); }
+  }
+  // anchors (leaf)
+  for(const a of anchors){
+    const s=1+Math.sin(performance.now()/350+a.x)*0.12;
+    ctx.save(); ctx.translate(a.x,a.y); ctx.scale(s,s);
+    ctx.fillStyle='#58b368'; ctx.beginPath(); ctx.ellipse(0,0,15,8,-0.5,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#2e7d42'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-11,5); ctx.quadraticCurveTo(0,-2,12,-6); ctx.stroke(); ctx.restore();
+  }
+  // goal gate
+  ctx.save();
+  ctx.fillStyle='rgba(255,255,255,0.75)'; roundRect(goal.x,goal.y,goal.w,goal.h,12); ctx.fill();
+  ctx.fillStyle='#9aa3ad'; ctx.beginPath(); ctx.arc(goal.x+goal.w/2,goal.y+goal.h/2,30,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#e8edf1'; ctx.beginPath(); ctx.arc(goal.x+goal.w/2,goal.y+goal.h/2,24,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#5b6670'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('FROG',goal.x+goal.w/2,goal.y+goal.h/2-2); ctx.fillText('SQUAD',goal.x+goal.w/2,goal.y+goal.h/2+11);
+  ctx.fillStyle='#2e7d42'; ctx.font='bold 13px sans-serif'; ctx.fillText('🏁 '+countInGoal()+'/4',goal.x+goal.w/2,goal.y-10);
+  ctx.restore();
+  // flies
+  for(const f of flies){ if(f.taken)continue; const y=f.y+Math.sin(performance.now()/300+f.bob)*4;
+    ctx.font='17px sans-serif'; ctx.textAlign='center'; ctx.fillText('🪰',f.x,y); }
+  // particles
+  for(const pt of particles){ ctx.globalAlpha=Math.max(0,pt.t*1.6); ctx.font='14px sans-serif'; ctx.textAlign='center'; ctx.fillText(pt.emo,pt.x,pt.y); ctx.globalAlpha=1; }
+  // frogs (buddies first, player last)
+  buddies.forEach(drawFrog); drawFrog(player);
+  // level title
+  ctx.fillStyle='rgba(74,47,20,0.85)'; ctx.font='bold 16px sans-serif'; ctx.textAlign='left';
+  ctx.fillText(LEVELS[levelIdx].name,14,26);
+}
+function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+// ---------- loop ----------
+let last=performance.now();
+function frame(now){
+  let dt=(now-last)/1000; last=now; if(dt>0.033)dt=0.033;
+  if(!won){
+    elapsed=(now-startTime)/1000;
+    stepPlayer(dt); buddies.forEach(b=>stepBuddy(b,dt)); stepFlies();
+    // particles
+    particles=particles.filter(p=>(p.t-=dt)>0); particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=300*dt;});
+    // win check
+    if(countInGoal()===4){ goalTimer+=dt; if(goalTimer>0.7){ won=true; sWin(); showOverlay(); } } else goalTimer=0;
+    const mm=Math.floor(elapsed/60), ss=Math.floor(elapsed%60);
+    document.getElementById('hTime').textContent=mm+':'+String(ss).padStart(2,'0');
+    if(Math.floor(now/250)!==Math.floor((now-dt*1000)/250)) updateHUD();
+  }
+  draw();
+  requestAnimationFrame(frame);
+}
+function showOverlay(){
+  const ov=document.getElementById('overlay');
+  const lastLevel=levelIdx>=LEVELS.length-1;
+  document.getElementById('ovTitle').textContent=lastLevel?'🏆 အဖွဲ့လိုက် အောင်ပြီ!':'🎉 အဆင့် '+(levelIdx+1)+' အောင်ပြီ!';
+  document.getElementById('ovText').textContent= lastLevel
+    ? 'ဖား ၄ ကောင်လုံး အတူ ရောက်လာပြီ။ Croak Squad ပုံစံကို မင်း ဆော့ပြီးသွားပြီ! နောက်ထပ် အဆင့်တွေ ထပ်ထည့်ချင်ရင် ပြောပါ။'
+    : 'ဖား ၄ ကောင်လုံး ပန်းတိုင်ထဲ ရောက်ပြီ။ နောက်အဆင့် သွားကြစို့!';
+  document.getElementById('ovBtn').textContent= lastLevel?'🔁 အစက ပြန်ဆော့':'နောက်တစ်ဆင့် ➜';
+  ov.style.display='flex';
+}
+document.getElementById('ovBtn').onclick=()=>{ document.getElementById('overlay').style.display='none'; loadLevel(levelIdx>=LEVELS.length-1?0:levelIdx+1); };
+
+// ---------- input ----------
+addEventListener('keydown',e=>{
+  audio();
+  if(e.code==='ArrowLeft'||e.code==='KeyA')keys.left=true;
+  if(e.code==='ArrowRight'||e.code==='KeyD')keys.right=true;
+  if(e.code==='ArrowUp'||e.code==='KeyW')keys.up=true;
+  if(e.code==='Space'){ e.preventDefault(); jump(); }
+  if(e.code==='KeyJ'||e.code==='KeyK') fireTongue();
+  if(e.code==='KeyR') loadLevel(levelIdx);
+});
+addEventListener('keyup',e=>{
+  if(e.code==='ArrowLeft'||e.code==='KeyA')keys.left=false;
+  if(e.code==='ArrowRight'||e.code==='KeyD')keys.right=false;
+  if(e.code==='ArrowUp'||e.code==='KeyW')keys.up=false;
+});
+function bindBtn(id,on,off){ const el=document.getElementById(id);
+  const start=e=>{e.preventDefault(); audio(); on();};
+  const end=e=>{e.preventDefault(); if(off)off();};
+  el.addEventListener('pointerdown',start); el.addEventListener('pointerup',end); el.addEventListener('pointerleave',end); el.addEventListener('pointercancel',end);
+}
+bindBtn('tLeft',()=>keys.left=true,()=>keys.left=false);
+bindBtn('tRight',()=>keys.right=true,()=>keys.right=false);
+bindBtn('tJump',()=>{ keys.up=true; jump(); },()=>keys.up=false);
+bindBtn('tTongue',()=>{ keys.up = keys.up; fireTongue(); });
+cv.addEventListener('pointerdown',()=>audio());
+
+loadLevel(0);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
