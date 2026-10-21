@@ -54,6 +54,7 @@
   <span class="pill">⏱ <b id="hTime">0:00</b></span>
 </div>
 
+<div id="lvlBtns" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:2px 4px 8px"></div>
 <div id="hint"></div>
 
 <div id="touch">
@@ -87,6 +88,8 @@ const sGulp=()=>beep(500,0.16,'sine',0.16,140);
 const sSpit=()=>beep(220,0.2,'sawtooth',0.08,760);
 const sGrab=()=>beep(180,0.22,'sine',0.14,520);
 const sFly =()=>beep(880,0.12,'triangle',0.1,1320);
+const sBoing=()=>beep(160,0.28,'sine',0.16,740);
+const sHurt=()=>beep(300,0.18,'sawtooth',0.1,90);
 const sWin =()=>{ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.22,'triangle',0.12),i*110)); };
 
 // ---------- levels ----------
@@ -136,10 +139,88 @@ const LEVELS=[
   anchors:[{x:445,y:368},{x:625,y:164},{x:700,y:46}],
   flies:[{x:440,y:388},{x:620,y:320},{x:440,y:252},{x:620,y:184}],
   goal:{x:760,y:28,w:150,h:68},
+},
+{ name:'အဆင့် ၄ — မှို ခုန်ပျံ',
+  hint:'အသစ်: 🍄 <b>မှိုနီပေါ် တက်နင်းရင် အမြင့်ကြီး ပေါက်ခုန်</b>မယ်! မှိုနဲ့ ပိုးကောင်တွေ ဖမ်း၊ သစ်သားထစ်ကနေ သူငယ်ချင်းတွေကို ဂိတ်ပေါ် မှုတ်တင် (↑ ဖိထား + လျှာ)။',
+  spawn:{x:50,y:380},
+  platforms:[
+    {x:0,y:440,w:300,h:100,t:'ground'},
+    {x:420,y:440,w:240,h:100,t:'ground'},
+    {x:600,y:368,w:96,h:18,t:'wood'},
+    {x:720,y:280,w:240,h:260,t:'ground'},
+  ],
+  anchors:[{x:830,y:205}],
+  springs:[{x:455,y:440},{x:120,y:440}],
+  flies:[{x:470,y:280},{x:645,y:318},{x:840,y:225}],
+  goal:{x:745,y:212,w:140,h:68},
+},
+{ name:'အဆင့် ၅ — ဆူးတွေကြားထဲ',
+  hint:'အသစ်: 🌵 <b>ဆူးထိရင် အစမှတ်ကို ပြန်ရောက်</b>မယ် — ဆူးကို ခုန်ကျော်ပါ။ သူငယ်ချင်းတွေကတော့ ဆူးတွေ့ရင် သူတို့ပါ ခုန်ကျော်တတ်တယ်။ ရေမြောင်းနဲ့ အမြင့်ဂိတ်ကို လျှာ/ထစ်တွေနဲ့ တက်ပါ။',
+  spawn:{x:40,y:380},
+  platforms:[
+    {x:0,y:440,w:400,h:100,t:'ground'},
+    {x:520,y:440,w:440,h:100,t:'ground'},
+    {x:425,y:352,w:92,h:18,t:'wood'},
+    {x:250,y:292,w:92,h:18,t:'wood'},
+    {x:690,y:330,w:96,h:18,t:'pink'},
+    {x:820,y:240,w:140,h:300,t:'ground'},
+  ],
+  anchors:[{x:880,y:168}],
+  spikes:[{x:150,y:440,w:44},{x:262,y:440,w:44},{x:610,y:440,w:44},{x:712,y:440,w:44}],
+  flies:[{x:295,y:245},{x:468,y:305},{x:735,y:283},{x:885,y:190}],
+  goal:{x:828,y:172,w:124,h:68},
+},
+{ name:'အဆင့် ၆ — ရွေ့လျားလှေကား',
+  hint:'အသစ်: 🛹 <b>ပြားတွေက ရွေ့နေတယ်</b> — ပြားပေါ် ရပ်စီးပြီး တစ်ဆင့်ချင်း ကူးပါ။ သူငယ်ချင်းတွေ မလိုက်နိုင်ရင် မျိုပြီး ဟိုဘက်မှာ မှုတ်ထုတ်ပေးပါ။',
+  spawn:{x:40,y:380},
+  platforms:[
+    {x:0,y:440,w:220,h:100,t:'ground'},
+    {x:300,y:380,w:96,h:18,t:'wood',mv:{ax:'x',r:65,sp:0.8,ph:0}},
+    {x:500,y:330,w:92,h:18,t:'wood'},
+    {x:625,y:300,w:90,h:18,t:'wood',mv:{ax:'y',r:55,sp:0.9,ph:2}},
+    {x:740,y:220,w:220,h:320,t:'ground'},
+  ],
+  anchors:[{x:812,y:148}],
+  flies:[{x:345,y:298},{x:545,y:282},{x:668,y:180},{x:845,y:168}],
+  goal:{x:765,y:152,w:140,h:68},
+},
+{ name:'အဆင့် ၇ — နှစ်လမ်း မျှော်စင်',
+  hint:'လမ်း ၂ သွယ်: ဘယ်ဘက် ထစ်တွေ ဆင့်တက်တာလား၊ ညာဘက် 🍄 မှိုနဲ့ ပေါက်ခုန် တက်တာလား ကြိုက်တာ ရွေး! ဆူးတွေကိုတော့ သတိထား။ အဖွဲ့လိုက် ဂိတ်ထဲ စုံမှ အောင်မယ်။',
+  spawn:{x:40,y:410},
+  platforms:[
+    {x:0,y:470,w:960,h:70,t:'ground'},
+    {x:150,y:392,w:120,h:18,t:'pink'},
+    {x:330,y:324,w:96,h:18,t:'wood'},
+    {x:510,y:256,w:120,h:18,t:'pink'},
+    {x:740,y:190,w:220,h:280,t:'ground'},
+  ],
+  anchors:[{x:600,y:178},{x:838,y:118}],
+  springs:[{x:688,y:470}],
+  spikes:[{x:300,y:470,w:44},{x:520,y:470,w:44}],
+  flies:[{x:208,y:345},{x:375,y:277},{x:568,y:209},{x:845,y:140}],
+  goal:{x:765,y:122,w:140,h:68},
+},
+{ name:'အဆင့် ၈ — နောက်ဆုံးစိန်ခေါ်မှု 👑',
+  hint:'အကုန် ပေါင်းစပ်ထားတဲ့ နောက်ဆုံးအဆင့်: ဆူး → ရွေ့လျားပြား → သစ်သားထစ် → ကျွန်းကလေး → 🍄 မှို/မှုတ်တင် → ပန်းရောင်ထစ် → ဂိတ်ကြီး။ အဖွဲ့ ၄ ကောင်လုံး ရောက်ရင် 👑 ရပြီ!',
+  spawn:{x:40,y:380},
+  platforms:[
+    {x:0,y:440,w:260,h:100,t:'ground'},
+    {x:330,y:380,w:92,h:18,t:'wood',mv:{ax:'x',r:55,sp:0.85,ph:1}},
+    {x:520,y:320,w:92,h:18,t:'wood'},
+    {x:640,y:440,w:140,h:100,t:'ground'},
+    {x:655,y:368,w:90,h:18,t:'wood'},
+    {x:600,y:258,w:200,h:18,t:'pink'},
+    {x:790,y:150,w:170,h:390,t:'ground'},
+  ],
+  anchors:[{x:700,y:196},{x:862,y:82}],
+  springs:[{x:716,y:440}],
+  spikes:[{x:104,y:440,w:44}],
+  flies:[{x:375,y:300},{x:562,y:272},{x:700,y:315},{x:700,y:208},{x:870,y:100}],
+  goal:{x:802,y:82,w:140,h:68},
 }];
 
 // ---------- state ----------
-let levelIdx=0, platforms=[], anchors=[], flies=[], goal=null, particles=[];
+let levelIdx=0, platforms=[], anchors=[], flies=[], goal=null, particles=[], springs=[], spikes=[];
 let player, buddies=[], startTime=0, elapsed=0, won=false, winTimer=0, goalTimer=0;
 const BUDDY_DEFS=[
   {color:'#f6a8d7',name:'ပန်းရောင်'},
@@ -150,12 +231,14 @@ const keys={left:false,right:false,up:false};
 
 function makeFrog(x,y,color,isPlayer){
   return {x,y,w:38,h:32,vx:0,vy:0,face:1,onGround:false,color,isPlayer:!!isPlayer,
-    belly:null, swallowed:false, flying:false, tongue:null, squash:0, safeX:x, safeY:y,
+    belly:null, swallowed:false, flying:false, tongue:null, squash:0, safeX:x, safeY:y, springCd:0,
     hopT:Math.random()*2, blink:Math.random()*3};
 }
 function loadLevel(i){
   levelIdx=i; const L=LEVELS[i];
-  platforms=L.platforms; anchors=L.anchors; goal=L.goal;
+  platforms=JSON.parse(JSON.stringify(L.platforms)); anchors=L.anchors; goal=L.goal;
+  platforms.forEach(p=>{ p.bx=p.x; p.by=p.y; p.dx=0; p.dy=0; });
+  springs=L.springs||[]; spikes=L.spikes||[];
   flies=L.flies.map(f=>({x:f.x,y:f.y,taken:false,bob:Math.random()*6}));
   player=makeFrog(L.spawn.x,L.spawn.y,'#7ecbf2',true);
   buddies=BUDDY_DEFS.map((d,j)=>{ const b=makeFrog(L.spawn.x-46*(j+1)+90, L.spawn.y, d.color,false); b.name=d.name; return b; });
@@ -197,6 +280,43 @@ function collide(f,dt){
   if(f.y>H+60){ f.x=f.safeX; f.y=f.safeY-10; f.vx=0; f.vy=0; f.flying=false; splash(f,'💦'); }
 }
 function splash(f,emo){ for(let i=0;i<8;i++) particles.push({x:f.x+f.w/2,y:f.y+f.h/2,vx:(Math.random()-0.5)*160,vy:-Math.random()*160-40,t:0.6,emo:emo||'✨'}); }
+
+// ---------- moving platforms / springs / spikes ----------
+function updateMoving(now){
+  const t=now/1000;
+  for(const p of platforms){
+    if(!p.mv){ p.dx=0; p.dy=0; continue; }
+    const off=Math.sin(t*p.mv.sp+(p.mv.ph||0))*p.mv.r;
+    const nx=p.mv.ax==='x'? p.bx+off : p.bx;
+    const ny=p.mv.ax==='y'? p.by+off : p.by;
+    p.dx=nx-p.x; p.dy=ny-p.y;
+    // carry frogs standing on it
+    for(const f of [player,...buddies]){
+      if(!f||f.swallowed) continue;
+      if(f.onGround && Math.abs((f.y+f.h)-p.y)<4 && f.x+f.w>p.x && f.x<p.x+p.w){ f.x+=p.dx; f.y+=p.dy; f.safeX=f.x; f.safeY=f.y; }
+    }
+    p.x=nx; p.y=ny;
+  }
+}
+function stepHazards(dt){
+  for(const f of [player,...buddies]){
+    if(!f||f.swallowed) continue;
+    if(f.springCd>0)f.springCd-=dt;
+    const cx=f.x+f.w/2, bottom=f.y+f.h;
+    // springs (mushroom bounce)
+    for(const s of springs){
+      if(f.springCd<=0 && f.vy>=0 && cx>s.x-4 && cx<s.x+36 && bottom>s.y-20 && bottom<s.y+8){
+        f.vy=-1090; f.onGround=false; f.flying=false; f.springCd=0.25; sBoing(); splash(f,'🍄');
+      }
+    }
+    // spikes -> back to last safe ground
+    for(const s of spikes){
+      if(f.x+f.w-7>s.x && f.x+7<s.x+s.w && bottom>s.y-13 && f.y<s.y){
+        f.x=f.safeX; f.y=f.safeY-8; f.vx=0; f.vy=0; f.flying=false; sHurt(); splash(f,'💥'); break;
+      }
+    }
+  }
+}
 
 // ---------- tongue ----------
 function mouth(f){ return {x:f.x+f.w/2+f.face*16, y:f.y+14}; }
@@ -273,7 +393,11 @@ function stepBuddy(b,dt){
   }
   b.vx=move*168;
   if(move!==0)b.face=move;
-  if(b.onGround && (dy<-34 || (move!==0 && Math.abs(b.vx)>0 && blocked(b,move)))) { b.vy=-JUMP*0.92; sJumpQuiet(b); }
+  // jump over spikes ahead
+  let spikeAhead=false;
+  if(b.onGround){ const px=b.x+b.w/2+(move||b.face)*30;
+    for(const s of spikes){ if(px>s.x-4 && px<s.x+s.w+4 && Math.abs((b.y+b.h)-s.y)<12) spikeAhead=true; } }
+  if(b.onGround && (dy<-34 || spikeAhead || (move!==0 && Math.abs(b.vx)>0 && blocked(b,move)))) { b.vy=-JUMP*0.92; sJumpQuiet(b); }
   b.vy+=GRAV*dt; if(b.vy>950)b.vy=950;
   collide(b,dt);
 }
@@ -356,6 +480,18 @@ function draw(){
     else if(p.t==='pink'){ ctx.fillStyle='#f6c6d8'; ctx.fillRect(p.x,p.y,p.w,p.h); ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.fillRect(p.x,p.y,p.w,5); }
     else { ctx.fillStyle='#e2a83d'; ctx.fillRect(p.x,p.y,p.w,p.h); ctx.fillStyle='#f0bc55'; ctx.fillRect(p.x,p.y,p.w,7); }
   }
+  // springs (mushrooms)
+  for(const s of springs){
+    ctx.fillStyle='#8a5a2b'; ctx.fillRect(s.x+11,s.y-9,10,9);
+    ctx.fillStyle='#e23b3b'; ctx.beginPath(); ctx.ellipse(s.x+16,s.y-11,19,10,0,Math.PI,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(s.x+8,s.y-14,3,0,Math.PI*2); ctx.arc(s.x+22,s.y-16,2.4,0,Math.PI*2); ctx.fill();
+  }
+  // spikes
+  for(const s of spikes){
+    ctx.fillStyle='#7a7f85'; ctx.strokeStyle='#4c5054'; ctx.lineWidth=1.4;
+    const n=Math.max(2,Math.round(s.w/16));
+    for(let i=0;i<n;i++){ const sx=s.x+i*(s.w/n); ctx.beginPath(); ctx.moveTo(sx,s.y); ctx.lineTo(sx+s.w/n/2,s.y-17); ctx.lineTo(sx+s.w/n,s.y); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  }
   // anchors (leaf)
   for(const a of anchors){
     const s=1+Math.sin(performance.now()/350+a.x)*0.12;
@@ -391,7 +527,8 @@ function frame(now){
   let dt=(now-last)/1000; last=now; if(dt>0.033)dt=0.033;
   if(!won){
     elapsed=(now-startTime)/1000;
-    stepPlayer(dt); buddies.forEach(b=>stepBuddy(b,dt)); stepFlies();
+    updateMoving(now);
+    stepPlayer(dt); buddies.forEach(b=>stepBuddy(b,dt)); stepHazards(dt); stepFlies();
     // particles
     particles=particles.filter(p=>(p.t-=dt)>0); particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=300*dt;});
     // win check
@@ -440,6 +577,22 @@ bindBtn('tRight',()=>keys.right=true,()=>keys.right=false);
 bindBtn('tJump',()=>{ keys.up=true; jump(); },()=>keys.up=false);
 bindBtn('tTongue',()=>{ keys.up = keys.up; fireTongue(); });
 cv.addEventListener('pointerdown',()=>audio());
+
+// ---------- level select buttons ----------
+(function(){
+  const box=document.getElementById('lvlBtns');
+  LEVELS.forEach((L,i)=>{
+    const b=document.createElement('button');
+    b.textContent='အဆင့် '+(i+1); b.dataset.idx=i;
+    b.style.cssText='background:#453322;color:#ffe9a8;border:1px solid #6b5236;border-radius:999px;padding:5px 13px;font-size:13.5px;cursor:pointer;font-family:inherit';
+    b.onclick=()=>{ audio(); document.getElementById('overlay').style.display='none'; loadLevel(i); };
+    box.appendChild(b);
+  });
+  const origLoad=loadLevel;
+  loadLevel=function(i){ origLoad(i);
+    box.querySelectorAll('button').forEach((b,j)=>{ b.style.background= j===i? '#e8598a':'#453322'; b.style.color= j===i? '#fff':'#ffe9a8'; });
+  };
+})();
 
 loadLevel(0);
 requestAnimationFrame(frame);
